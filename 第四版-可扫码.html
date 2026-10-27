@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>楠喻业务介绍</title>
+    <!-- 引入二维码生成库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* 配色：莫兰迪青色系 */
+        :root {
+            --bg-color: #f0f7f6; 
+            --primary: #2a9d8f; 
+            --secondary: #83c5be; 
+            --text-main: #264653; 
+            --text-light: #738f8b; 
+            
+            --card-bg: rgba(255, 255, 255, 0.6); 
+            --card-bg-hover: rgba(255, 255, 255, 0.95);
+            --card-border: rgba(255, 255, 255, 1); 
+            
+            --shadow-soft: 0 10px 30px rgba(42, 157, 143, 0.08);
+            --shadow-hover: 0 15px 40px rgba(42, 157, 143, 0.15);
+            
+            --font-main: 'Yuanti SC', 'YouYuan', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.7; 
+            min-height: 100vh;
+            cursor: crosshair; 
+            -webkit-font-smoothing: antialiased; 
+        }
+
+        /* ================= 底层：水光斑背景 ================= */
+        #bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(131, 197, 190, 0.6), rgba(42, 157, 143, 0.1));
+            animation: float 15s infinite ease-in-out alternate;
+            opacity: 0.8; 
+            filter: blur(10px);
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(80px, -60px) scale(1.1); }
+            50% { transform: translate(-40px, 80px) scale(0.9); }
+            75% { transform: translate(60px, 40px) scale(1.05); }
+            100% { transform: translate(-80px, -40px) scale(1); }
+        }
+
+        /* ================= 顶层：星尘微光 ================= */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            pointer-events: none; 
+            overflow: hidden;
+        }
+
+        .star-dust {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px 2px rgba(42, 157, 143, 0.5);
+            animation: drift linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { opacity: 0.7; }
+            80% { opacity: 0.7; }
+            100% { transform: translateY(-100px) scale(1.2); opacity: 0; }
+        }
+
+        /* ================= 页面主体 ================= */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 30px;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px); 
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 28px; 
+            border: 2px solid var(--card-border); 
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(131, 197, 190, 0.1) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        header > * { position: relative; z-index: 1; }
+
+        .title-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .title-wrapper .english {
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: var(--secondary);
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        header h1 {
+            font-size: 2.6rem;
+            font-weight: bold;
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-shadow: 1px 2px 5px rgba(42, 157, 143, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header h1::before, header h1::after {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: var(--secondary);
+            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+            animation: titleStar 3s infinite alternate;
+        }
+        header h1::after { animation-delay: 1.5s; }
+
+        @keyframes titleStar {
+            0% { transform: scale(0.8) rotate(0deg); opacity: 0.6; }
+            100% { transform: scale(1.1) rotate(90deg); opacity: 1; }
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px; 
+        }
+        
+        header p .dot {
+            width: 3px;
+            height: 3px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+            display: inline-block;
+            opacity: 0.6;
+        }
+
+        /* ---------------- 折叠面板 ---------------- */
+        .accordion {
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden; 
+        }
+
+        .accordion.show { opacity: 1; transform: translateY(0); }
+
+        .accordion-header {
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+            user-select: none;
+        }
+
+        .accordion-header:hover { background: rgba(255, 255, 255, 0.5); }
+
+        .accordion-header h2 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            margin: 0;
+        }
+
+        .accordion-header h2::before {
+            content: "";
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background: var(--secondary);
+            margin-right: 12px;
+            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+            animation: pulseStarStrong 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseStarStrong {
+            0% { transform: scale(0.8) rotate(0deg); opacity: 0.5; background: var(--secondary); }
+            50% { transform: scale(1.2) rotate(45deg); opacity: 1; background: var(--primary); }
+            100% { transform: scale(0.9) rotate(90deg); opacity: 0.7; background: var(--secondary); }
+        }
+
+        .accordion-icon {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion.active .accordion-icon { transform: rotate(180deg); }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), padding 0.5s, opacity 0.4s ease;
+            opacity: 0;
+            padding: 0 20px;
+        }
+
+        .accordion.active .accordion-content {
+            opacity: 1;
+            padding: 10px 20px 25px 20px; 
+        }
+
+        /* ---------------- 卡片 ---------------- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+            perspective: 1000px; 
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden; 
+            transform-style: preserve-3d; 
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            width: 100px;
+            height: 100px;
+            background: var(--secondary);
+            opacity: 0.08; 
+            z-index: 0;
+            transition: transform 0.4s ease, opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .card:hover::before { transform: scale(1.1); opacity: 0.15; }
+
+        .pattern-1::before { border-radius: 50%; background: transparent; border: 8px solid var(--secondary); width: 120px; height: 120px; right: -40px; bottom: -40px; }
+        .pattern-2::before { transform: rotate(45deg); border-radius: 8px; width: 90px; height: 90px; right: -25px; bottom: -25px; }
+        .pattern-2:hover::before { transform: rotate(135deg) scale(1.1); }
+        .pattern-3::before { clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%); width: 140px; height: 140px; right: -40px; bottom: -40px; }
+        .pattern-3:hover::before { transform: rotate(45deg) scale(1.1); }
+        .pattern-4::before { border-radius: 50%; background: transparent; border-bottom: 10px solid var(--secondary); border-left: 10px solid var(--secondary); width: 100px; height: 100px; right: -20px; bottom: -20px; }
+        .pattern-5::before { background: radial-gradient(var(--secondary) 2px, transparent 2px); background-size: 12px 12px; width: 80px; height: 80px; right: 10px; bottom: 10px; }
+        .pattern-6::before { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); width: 110px; height: 110px; right: -30px; bottom: -30px; }
+        .pattern-6:hover::before { transform: rotate(45deg) scale(1.2); }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            top: var(--y, 50%);
+            left: var(--x, 50%);
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(131, 197, 190, 0.2) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .card:hover {
+            background: var(--card-bg-hover);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--secondary);
+            z-index: 10;
+        }
+        .card:hover::after { opacity: 1; }
+
+        .card h3, .card p { position: relative; z-index: 2; transform: translateZ(20px); }
+
+        .card h3 {
+            font-weight: bold;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+        }
+
+        .card h3 .price {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--primary); 
+            background: rgba(131, 197, 190, 0.15); 
+            padding: 3px 10px;
+            border-radius: 20px; 
+            border: 1px solid rgba(131, 197, 190, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover h3 .price {
+            color: #ffffff;
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .card p { color: var(--text-light); font-size: 0.85rem; font-weight: 500; line-height: 1.6; padding-left: 2px; }
+
+        /* ---------------- 注意事项 ---------------- */
+        .rules-box {
+            background: var(--card-bg); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid var(--card-border);
+            border-radius: 22px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-soft);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .rules-box.show { opacity: 1; transform: translateY(0); }
+
+        .rules-box h2 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .rules-box h2::before {
+            content: "";
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background: var(--secondary);
+            margin-right: 12px;
+            border-radius: 50% 0 50% 0;
+            box-shadow: 0 0 0 2px rgba(131, 197, 190, 0.3);
+            transform: rotate(45deg);
+        }
+
+        .rules-box ul { list-style: none; }
+
+        .rules-box li {
+            margin-bottom: 12px;
+            color: var(--text-main); 
+            font-size: 0.9rem;
+            font-weight: bold; 
+            position: relative;
+            padding-left: 22px;
+        }
+
+        .rules-box li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 8px;
+            height: 8px;
+            border: 2px solid var(--secondary);
+            border-radius: 50%;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .rules-box li:hover::before { background: var(--secondary); transform: scale(1.2); }
+
+        .highlight {
+            color: var(--primary);
+            font-weight: bold; 
+            background: rgba(131, 197, 190, 0.2);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        /* ================= 极简艺术二维码区域 ================= */
+        .contact-section {
+            background: transparent; /* 去掉白色大底框，让二维码直接悬浮 */
+            padding: 20px 0 40px 0;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .contact-section.show { opacity: 1; transform: translateY(0); }
+
+        .contact-section h2 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .contact-section h2::before, .contact-section h2::after {
+            content: "";
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: var(--secondary);
+            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+            margin: 0 15px;
+            opacity: 0.7;
+        }
+
+        /* 三个并排 */
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px; /* 调整间距让它们看起来更舒展 */
+            flex-wrap: wrap;
+        }
+
+        .qr-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 二维码容器：带一点微小阴影和圆角 */
+        .qr-wrap {
+            width: 120px;
+            height: 120px;
+            padding: 8px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(42, 157, 143, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .qr-item:hover .qr-wrap {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(42, 157, 143, 0.25);
+        }
+
+        /* 中间的图标 */
+        .qr-icon-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 28px;
+            height: 28px;
+            background: #fff;
+            border-radius: 6px;
+            padding: 3px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 使用 CSS 画极简图标 */
+        .icon-qq {
+            width: 18px; height: 18px;
+            background: var(--text-main);
+            clip-path: polygon(50% 0%, 90% 20%, 100% 60%, 80% 100%, 20% 100%, 0% 60%, 10% 20%);
+        }
+        .icon-wechat {
+            width: 18px; height: 18px;
+            background: var(--primary);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+        }
+        .icon-alipay {
+            width: 18px; height: 18px;
+            background: var(--secondary);
+            border-radius: 4px;
+            display: flex; justify-content: center; align-items: center;
+            color: #fff; font-size: 12px; font-weight: bold; line-height: 1;
+        }
+        .icon-alipay::before { content: "支"; }
+
+        /* 隐藏原生的 img/canvas 边缘，让其融合 */
+        #qrcode-qq img, #qrcode-wechat img, #qrcode-alipay img,
+        #qrcode-qq canvas, #qrcode-wechat canvas, #qrcode-alipay canvas {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .qr-label {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        /* 极小的备用文字 */
+        .qr-sub-link {
+            font-size: 0.65rem;
+            color: var(--text-light);
+            margin-top: 4px;
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .qr-sub-link:hover { opacity: 1; color: var(--primary); }
+
+        /* ---------------- 底部版权 ---------------- */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-top: 1px dashed rgba(42, 157, 143, 0.3); 
+        }
+
+        footer .name {
+            font-size: 1.3rem;
+            color: var(--primary);
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        /* ================= 鼠标点击星光 ================= */
+        .click-spark {
+            position: fixed;
+            width: 5px;
+            height: 5px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 10px 2px var(--secondary);
+            z-index: 10000;
+        }
+
+        @media (max-width: 600px) {
+            .grid-container { grid-template-columns: 1fr; }
+            header h1 { font-size: 2.2rem; gap: 10px; }
+            header h1::before, header h1::after { width: 14px; height: 14px; }
+            header p { flex-direction: column; gap: 2px; }
+            header p .dot { display: none; }
+            .qr-container { gap: 20px; }
+            .qr-wrap { width: 100px; height: 100px; padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg-animation"></div>
+    <div id="particle-container"></div>
+
+    <div class="container">
+        <header>
+            <div class="title-wrapper">
+                <span class="english">BUSINESS INFO</span>
+                <h1>楠喻业务介绍</h1>
+            </div>
+            <p>
+                客观现实 <span class="dot"></span> 
+                事在人为 <span class="dot"></span> 
+                期待您的光临
+            </p>
+        </header>
+
+        <!-- 1. 梦向占卜板块 -->
+        <div class="accordion active">
+            <div class="accordion-header">
+                <h2>梦向占卜</h2>
+                <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="grid-container">
+                    <div class="card pattern-1">
+                        <h3><span class="name">普通梦占</span> <span class="price">6.6r/3牌</span></h3>
+                        <p>补牌一张 +2r（可选星骰）</p>
+                    </div>
+                    <div class="card pattern-2">
+                        <h3><span class="name">梦向传信</span> <span class="price">10r起</span></h3>
+                        <p>100字/10元</p>
+                    </div>
+                    <div class="card pattern-3">
+                        <h3><span class="name">传讯</span> <span class="price">1.2r/min</span></h3>
+                        <p>10min起接</p>
+                    </div>
+                    <div class="card pattern-4">
+                        <h3><span class="name">涩占</span> <span class="price">8r</span></h3>
+                        <p>详解</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 常规占卜板块 -->
+        <div class="accordion active">
+            <div class="accordion-header">
+                <h2>常规占卜</h2>
+                <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="grid-container">
+                    <div class="card pattern-5">
+                        <h3><span class="name">是否简答</span> <span class="price">5r</span></h3>
+                        <p>简单回答</p>
+                    </div>
+                    <div class="card pattern-6">
+                        <h3><span class="name">寻物</span> <span class="price">5.2r</span></h3>
+                        <p>找到收钱</p>
+                    </div>
+                    <div class="card pattern-1">
+                        <h3><span class="name">常规占卜</span> <span class="price">15r/3牌</span></h3>
+                        <p>详解，有疑问可提 补牌一张 +2r，不准可退</p>
+                    </div>
+                    <div class="card pattern-2">
+                        <h3><span class="name">牌阵</span> <span class="price">15r起步</span></h3>
+                        <p>三牌 15r 起步，往后一张牌 +4，详解</p>
+                    </div>
+                    <div class="card pattern-3">
+                        <h3><span class="name">看盘</span> <span class="price">36r</span></h3>
+                        <p>任意问 x4</p>
+                    </div>
+                    <div class="card pattern-4">
+                        <h3><span class="name">手相</span> <span class="price">6r</span></h3>
+                        <p>随便看看，内容少，仅娱乐</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 其他业务 -->
+        <div class="accordion active">
+            <div class="accordion-header">
+                <h2>其他业务</h2>
+                <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="grid-container">
+                    <div class="card pattern-5">
+                        <h3><span class="name">陪聊</span> <span class="price">15r/h</span></h3>
+                        <p>1小时</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 注意事项 -->
+        <div class="rules-box">
+            <h2>注意事项</h2>
+            <ul>
+                <li>以上反馈均在空间相册</li>
+                <li><span class="highlight">考试类占下不接没考完的结果</span></li>
+                <li><span class="highlight">交流过程中尊重是双向的</span></li>
+                <li>本人业务偏向客观现实</li>
+                <li>不接除了占下外的额外聊天，需要请看陪聊</li>
+                <li>塔罗结果仅参考，一切事在人为</li>
+            </ul>
+        </div>
+
+        <!-- 5. 极简艺术二维码区域 -->
+        <div class="contact-section">
+            <h2>联系与支付</h2>
+            <div class="qr-container">
+                
+                <!-- QQ -->
+                <div class="qr-item">
+                    <div class="qr-wrap">
+                        <div id="qrcode-qq"></div>
+                        <div class="qr-icon-center"><div class="icon-qq"></div></div>
+                    </div>
+                    <div class="qr-label">QQ 联系</div>
+                </div>
+
+                <!-- 微信 -->
+                <div class="qr-item">
+                    <div class="qr-wrap">
+                        <div id="qrcode-wechat"></div>
+                        <div class="qr-icon-center"><div class="icon-wechat"></div></div>
+                    </div>
+                    <div class="qr-label">微信支付</div>
+                    <a href="wxp://f2f01GieMXflrVo1fb-0D6aYTDGeMmVOQLTkUTGeCFucIoI" class="qr-sub-link">点此唤起微信</a>
+                </div>
+
+                <!-- 支付宝 -->
+                <div class="qr-item">
+                    <div class="qr-wrap">
+                        <div id="qrcode-alipay"></div>
+                        <div class="qr-icon-center"><div class="icon-alipay"></div></div>
+                    </div>
+                    <div class="qr-label">支付宝</div>
+                    <a href="https://qr.alipay.com/fkx12716x66cdsuujgaueb6" class="qr-sub-link">点此唤起支付宝</a>
+                </div>
+
+            </div>
+        </div>
+
+        <footer>
+            <p>小店期待您的光临~(。・・)ノ</p>
+            <p class="name">楠喻</p>
+        </footer>
+    </div>
+
+    <script>
+        // ================= 1. 动态生成极具设计感的二维码 =================
+        
+        // 核心美化：使用极深的暗青色（接近网页文字色）代替死黑
+        const qrColor = "#1f3d3a"; 
+
+        new QRCode(document.getElementById("qrcode-qq"), {
+            text: "https://qm.qq.com/q/1BbrZ7NxUw",
+            width: 120, height: 120,
+            colorDark : qrColor, colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H // 高容错率，为了中间放图标
+        });
+
+        new QRCode(document.getElementById("qrcode-wechat"), {
+            text: "wxp://f2f01GieMXflrVo1fb-0D6aYTDGeMmVOQLTkUTGeCFucIoI",
+            width: 120, height: 120,
+            colorDark : qrColor, colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        new QRCode(document.getElementById("qrcode-alipay"), {
+            text: "https://qr.alipay.com/fkx12716x66cdsuujgaueb6",
+            width: 120, height: 120,
+            colorDark : qrColor, colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        // 附加动态：给二维码里的模块（点点）加一点颜色滤镜
+        setTimeout(() => {
+            const canvases = document.querySelectorAll('.qr-wrap canvas');
+            canvases.forEach(canvas => {
+                // 混合模式，让深青色和白色看起来更像青绿渐变
+                canvas.style.filter = "drop-shadow(0px 0px 2px rgba(131,197,190,0.3))";
+            });
+        }, 100);
+
+        // ================= 2. 底层：水光斑 =================
+        const bgContainer = document.getElementById('bg-animation');
+        for (let i = 0; i < 25; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            const size = Math.random() * 270 + 80;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}vw`;
+            bubble.style.top = `${Math.random() * 100}vh`;
+            bubble.style.animationDelay = `${Math.random() * -15}s`;
+            bubble.style.animationDuration = `${Math.random() * 10 + 10}s`;
+            bgContainer.appendChild(bubble);
+        }
+
+        // ================= 3. 顶层：星尘 =================
+        const particleContainer = document.getElementById('particle-container');
+        for (let i = 0; i < 40; i++) {
+            const dust = document.createElement('div');
+            dust.classList.add('star-dust');
+            const size = Math.random() * 4 + 1; 
+            dust.style.width = `${size}px`;
+            dust.style.height = `${size}px`;
+            dust.style.left = `${Math.random() * 100}vw`;
+            dust.style.top = `${Math.random() * 100}vh`;
+            dust.style.animationDuration = `${Math.random() * 10 + 10}s`;
+            dust.style.animationDelay = `${Math.random() * -20}s`;
+            particleContainer.appendChild(dust);
+        }
+
+        // ================= 4. 鼠标拖尾 =================
+        let lastTime = 0;
+        document.addEventListener('mousemove', (e) => {
+            const now = Date.now();
+            if (now - lastTime < 40) return; 
+            lastTime = now;
+
+            const spark = document.createElement('div');
+            spark.classList.add('click-spark');
+            spark.style.left = `${e.clientX + (Math.random() - 0.5) * 20}px`;
+            spark.style.top = `${e.clientY + (Math.random() - 0.5) * 20}px`;
+            const size = Math.random() * 4 + 2;
+            spark.style.width = `${size}px`;
+            spark.style.height = `${size}px`;
+            
+            document.body.appendChild(spark);
+            spark.animate([
+                { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                { transform: 'translate(-50%, -50%) scale(0)', opacity: 0 }
+            ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+            setTimeout(() => spark.remove(), 600);
+        });
+
+        // ================= 5. 折叠逻辑 =================
+        const accordions = document.querySelectorAll('.accordion');
+        accordions.forEach(acc => {
+            const content = acc.querySelector('.accordion-content');
+            if (acc.classList.contains('active')) {
+                setTimeout(() => { content.style.maxHeight = content.scrollHeight + 40 + 'px'; }, 50);
+            }
+            acc.querySelector('.accordion-header').addEventListener('click', () => {
+                const isActive = acc.classList.contains('active');
+                acc.classList.toggle('active');
+                content.style.maxHeight = isActive ? null : (content.scrollHeight + 40 + 'px');
+            });
+        });
+
+        // ================= 6. 滚动动画 =================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                    observer.unobserve(entry.target); 
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -20px 0px" });
+        
+        document.querySelectorAll('.accordion, .rules-box, .contact-section').forEach((el, index) => {
+            el.style.transitionDelay = `${index * 0.1}s`;
+            observer.observe(el);
+        });
+
+        // ================= 7. 卡片 3D 悬停 =================
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -8; 
+                const rotateY = ((x - centerX) / centerX) * 8;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px) scale(1.02)`;
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) translateY(0) scale(1)`;
+            });
+        });
+
+        // ================= 8. 点击星爆 =================
+        document.addEventListener('click', function(e) {
+            for(let i=0; i<6; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('click-spark');
+                spark.style.left = `${e.clientX}px`;
+                spark.style.top = `${e.clientY}px`;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 40 + 20;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                spark.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], { duration: 600, easing: 'cubic-bezier(0, .9, .57, 1)', fill: 'forwards' });
+                
+                document.body.appendChild(spark);
+                setTimeout(() => spark.remove(), 600);
+            }
+        });
+    </script>
+</body>
+</html>
